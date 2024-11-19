@@ -22,6 +22,18 @@ public class Address {
     @Column(name = "country", nullable = false, length = 60)
     private String country;
 
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private LocalUser user;
+
+    public LocalUser getUser() {
+        return user;
+    }
+
+    public void setUser(LocalUser user) {
+        this.user = user;
+    }
+
     public String getCountry() {
         return country;
     }
