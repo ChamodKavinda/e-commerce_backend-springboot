@@ -2,6 +2,9 @@ package com.chamod.ecommerce_backend.model;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Table(name = "local_user")
 @Entity
 public class LocalUser {
@@ -24,6 +27,17 @@ public class LocalUser {
 
     @Column(name = "last_name", nullable = false)
     private String lastName;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE,orphanRemoval = true)
+    private List<Address> addresses = new ArrayList<>();
+
+    public List<Address> getAddresses(){
+        return addresses;
+    }
+
+    public void setAddresses(List<Address> addresses){
+        this.addresses=addresses;
+    }
 
     public String getLastName() {
         return lastName;
