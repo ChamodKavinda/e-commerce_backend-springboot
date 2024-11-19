@@ -3,6 +3,7 @@ package com.chamod.ecommerce_backend.api.controller.auth;
 import com.chamod.ecommerce_backend.api.model.RegistrationBody;
 import com.chamod.ecommerce_backend.exception.UserAlreadyExistsException;
 import com.chamod.ecommerce_backend.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ public class AuthenticationController {
 
 
     @PostMapping("/register")
-    public ResponseEntity registerUser(@RequestBody RegistrationBody registrationBody){
+    public ResponseEntity registerUser(@Valid @RequestBody RegistrationBody registrationBody){
         System.out.println(registrationBody);
         try {
             userService.registerUser(registrationBody);
