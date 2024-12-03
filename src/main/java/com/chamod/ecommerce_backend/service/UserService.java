@@ -4,6 +4,7 @@ import com.chamod.ecommerce_backend.api.model.LoginBody;
 import com.chamod.ecommerce_backend.api.model.RegistrationBody;
 import com.chamod.ecommerce_backend.exception.EmailFailureException;
 import com.chamod.ecommerce_backend.exception.UserAlreadyExistsException;
+import com.chamod.ecommerce_backend.exception.UserNotVerifiedException;
 import com.chamod.ecommerce_backend.model.LocalUser;
 import com.chamod.ecommerce_backend.model.VerificationToken;
 import com.chamod.ecommerce_backend.model.dao.LocalUserDAO;
@@ -11,6 +12,7 @@ import com.chamod.ecommerce_backend.model.dao.VerificationTokenDAO;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -51,13 +53,24 @@ public class UserService {
 
 
 
-    public String loginUser(LoginBody loginBody){
+    public String loginUser(LoginBody loginBody) throws UserNotVerifiedException, EmailFailureException {
         Optional<LocalUser> opUser = localUserDAO.findByUsernameIsIgnoreCase(loginBody.getUsername());
-
-        if(opUser.isPresent()){
+        if (opUser.isPresent()) {
             LocalUser user = opUser.get();
-            if(encryptionService.verifyPassword(loginBody.getPassword(),user.getPassword())){
-                return jwtService.generateJWT(user);
+            if (encryptionService.verifyPassword(loginBody.getPassword(), user.getPassword())) {
+                if (user.isEmailVerified()) {
+                    return jwtService.generateJWT(user);
+                } else {
+                    List<VerificationToken> verificationTokens = user.getVerificationTokens();
+                    boolean resend = verificationTokens.size() == 0 ||
+                            verificationTokens.get(0).getCreatedTimestamp().before(new Timestamp(System.currentTimeMillis() - (60 * 60 * 1000)));
+                    if (resend) {
+                        VerificationToken verificationToken = createVerificationToken(user);
+                        verificationTokenDAO.save(verificationToken);
+                        emailService.sendVerificationEmail(verificationToken);
+                    }
+                    throw new UserNotVerifiedException(resend);
+                }
             }
         }
         return null;
