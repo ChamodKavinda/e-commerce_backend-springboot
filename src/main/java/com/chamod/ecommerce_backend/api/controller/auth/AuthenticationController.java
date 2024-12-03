@@ -3,6 +3,7 @@ package com.chamod.ecommerce_backend.api.controller.auth;
 import com.chamod.ecommerce_backend.api.model.LoginBody;
 import com.chamod.ecommerce_backend.api.model.LoginResponse;
 import com.chamod.ecommerce_backend.api.model.RegistrationBody;
+import com.chamod.ecommerce_backend.exception.EmailFailureException;
 import com.chamod.ecommerce_backend.exception.UserAlreadyExistsException;
 import com.chamod.ecommerce_backend.model.LocalUser;
 import com.chamod.ecommerce_backend.service.UserService;
@@ -29,7 +30,7 @@ public class AuthenticationController {
         try {
             userService.registerUser(registrationBody);
             return ResponseEntity.ok().build();
-        } catch (UserAlreadyExistsException e) {
+        } catch (UserAlreadyExistsException | EmailFailureException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
     }
