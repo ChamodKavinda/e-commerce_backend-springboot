@@ -1,6 +1,6 @@
 package com.chamod.ecommerce_backend.exception;
 
-public class UserNotVerifiedException extends Throwable {
+public class UserNotVerifiedException extends Exception {
 
     private boolean newEmailSent;
 
