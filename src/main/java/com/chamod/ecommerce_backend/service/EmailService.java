@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.stereotype.Service;
 
+@Service
 public class EmailService {
 
     @Value("${email.from}")
@@ -21,7 +23,7 @@ public class EmailService {
         this.javaMailSender = javaMailSender;
     }
 
-    private SimpleMailMessage makeMailMessage(){
+    private SimpleMailMessage makeMailMessage() {
         SimpleMailMessage simpleMailMessage = new SimpleMailMessage();
         simpleMailMessage.setFrom(fromAddress);
         return simpleMailMessage;
