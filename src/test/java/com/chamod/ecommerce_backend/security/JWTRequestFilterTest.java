@@ -19,12 +19,22 @@ public class JWTRequestFilterTest {
     private MockMvc mvc;
 
 
+
     private static final String AUTHENTICATED_PATH = "/auth/me";
 
 
     @Test
     public void testUnauthenticatedRequest() throws Exception {
         mvc.perform(get(AUTHENTICATED_PATH)).andExpect(status().is(HttpStatus.FORBIDDEN.value()));
+    }
+
+
+    @Test
+    public void testBadToken() throws Exception {
+        mvc.perform(get(AUTHENTICATED_PATH).header("Authorization", "BadTokenThatIsNotValid"))
+                .andExpect(status().is(HttpStatus.FORBIDDEN.value()));
+        mvc.perform(get(AUTHENTICATED_PATH).header("Authorization", "Bearer BadTokenThatIsNotValid"))
+                .andExpect(status().is(HttpStatus.FORBIDDEN.value()));
     }
 
 }
