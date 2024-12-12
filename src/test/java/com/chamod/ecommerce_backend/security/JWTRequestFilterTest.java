@@ -52,4 +52,12 @@ public class JWTRequestFilterTest {
                 .andExpect(status().is(HttpStatus.FORBIDDEN.value()));
     }
 
+
+    @Test
+    public void testSuccessful() throws Exception {
+        LocalUser user = localUserDAO.findByUsernameIgnoreCase("UserA").get();
+        String token = jwtService.generateJWT(user);
+        mvc.perform(get(AUTHENTICATED_PATH).header("Authorization", "Bearer " + token))
+                .andExpect(status().is(HttpStatus.OK.value()));
+    }
 }
