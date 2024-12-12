@@ -1,6 +1,8 @@
 package com.chamod.ecommerce_backend.security;
 
-
+import com.chamod.ecommerce_backend.model.LocalUser;
+import com.chamod.ecommerce_backend.model.dao.LocalUserDAO;
+import com.chamod.ecommerce_backend.service.JWTService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -18,7 +20,11 @@ public class JWTRequestFilterTest {
     @Autowired
     private MockMvc mvc;
 
+    @Autowired
+    private JWTService jwtService;
 
+    @Autowired
+    private LocalUserDAO localUserDAO;
 
     private static final String AUTHENTICATED_PATH = "/auth/me";
 
@@ -34,6 +40,15 @@ public class JWTRequestFilterTest {
         mvc.perform(get(AUTHENTICATED_PATH).header("Authorization", "BadTokenThatIsNotValid"))
                 .andExpect(status().is(HttpStatus.FORBIDDEN.value()));
         mvc.perform(get(AUTHENTICATED_PATH).header("Authorization", "Bearer BadTokenThatIsNotValid"))
+                .andExpect(status().is(HttpStatus.FORBIDDEN.value()));
+    }
+
+
+    @Test
+    public void testUnverifiedUser() throws Exception {
+        LocalUser user = localUserDAO.findByUsernameIgnoreCase("UserB").get();
+        String token = jwtService.generateJWT(user);
+        mvc.perform(get(AUTHENTICATED_PATH).header("Authorization", "Bearer " + token))
                 .andExpect(status().is(HttpStatus.FORBIDDEN.value()));
     }
 
