@@ -40,6 +40,7 @@ public class LocalUser implements UserDetails {
     private List<Address> addresses = new ArrayList<>();
 
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id desc")
     private List<VerificationToken> verificationTokens = new ArrayList<>();
