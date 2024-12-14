@@ -8,6 +8,6 @@ import java.util.Optional;
 public interface LocalUserDAO extends ListCrudRepository<LocalUser, Long> {
     Optional<LocalUser> findByUsernameIgnoreCase(String username);
 
-    Optional<LocalUser> findByEmailIsIgnoreCase(String email);
+    Optional<LocalUser> findByEmailIgnoreCase(String email);
 
 }
