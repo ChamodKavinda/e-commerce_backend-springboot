@@ -4,6 +4,7 @@ import com.chamod.ecommerce_backend.api.model.LoginBody;
 import com.chamod.ecommerce_backend.api.model.LoginResponse;
 import com.chamod.ecommerce_backend.api.model.RegistrationBody;
 import com.chamod.ecommerce_backend.exception.EmailFailureException;
+import com.chamod.ecommerce_backend.exception.EmailNotFoundException;
 import com.chamod.ecommerce_backend.exception.UserAlreadyExistsException;
 import com.chamod.ecommerce_backend.exception.UserNotVerifiedException;
 import com.chamod.ecommerce_backend.model.LocalUser;
@@ -79,6 +80,19 @@ public class AuthenticationController {
     @GetMapping("/me")
     public LocalUser getLoggedInUserProfile(@AuthenticationPrincipal LocalUser user) {
         return user;
+    }
+
+
+    @PostMapping("/forgot")
+    public ResponseEntity forgotPassword(@RequestParam String email) {
+        try {
+            userService.forgotPassword(email);
+            return ResponseEntity.ok().build();
+        } catch (EmailNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (EmailFailureException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
 
