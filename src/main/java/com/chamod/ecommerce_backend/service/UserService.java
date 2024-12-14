@@ -3,6 +3,7 @@ package com.chamod.ecommerce_backend.service;
 import com.chamod.ecommerce_backend.api.model.LoginBody;
 import com.chamod.ecommerce_backend.api.model.RegistrationBody;
 import com.chamod.ecommerce_backend.exception.EmailFailureException;
+import com.chamod.ecommerce_backend.exception.EmailNotFoundException;
 import com.chamod.ecommerce_backend.exception.UserAlreadyExistsException;
 import com.chamod.ecommerce_backend.exception.UserNotVerifiedException;
 import com.chamod.ecommerce_backend.model.LocalUser;
@@ -35,7 +36,7 @@ public class UserService {
     }
 
     public LocalUser registerUser(RegistrationBody registrationBody) throws UserAlreadyExistsException, EmailFailureException {
-        if (localUserDAO.findByEmailIsIgnoreCase(registrationBody.getEmail()).isPresent()
+        if (localUserDAO.findByEmailIgnoreCase(registrationBody.getEmail()).isPresent()
                 || localUserDAO.findByUsernameIgnoreCase(registrationBody.getUsername()).isPresent()) {
             throw new UserAlreadyExistsException();
         }
@@ -98,5 +99,16 @@ public class UserService {
             }
         }
         return false;
+    }
+
+    public void forgotPassword(String email) throws EmailNotFoundException, EmailFailureException {
+        Optional<LocalUser> opUser = localUserDAO.findByEmailIgnoreCase(email);
+        if (opUser.isPresent()) {
+            LocalUser user = opUser.get();
+            String token = jwtService.generatePasswordResetJWT(user);
+            emailService.sendPasswordResetEmail(user, token);
+        } else {
+            throw new EmailNotFoundException();
+        }
     }
 }
