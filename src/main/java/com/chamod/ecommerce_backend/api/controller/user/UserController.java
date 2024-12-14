@@ -9,6 +9,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/user")
@@ -41,6 +42,26 @@ public class UserController {
         refUser.setId(userId);
         address.setUser(refUser);
         return ResponseEntity.ok(addressDAO.save(address));
+    }
+
+    @PatchMapping("/{userId}/address/{addressId}")
+    public ResponseEntity<Address> patchAddress(
+            @AuthenticationPrincipal LocalUser user, @PathVariable Long userId,
+            @PathVariable Long addressId, @RequestBody Address address) {
+        if (!userHasPermission(user, userId)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        if (address.getId() == addressId) {
+            Optional<Address> opOriginalAddress = addressDAO.findById(addressId);
+            if (opOriginalAddress.isPresent()) {
+                LocalUser originalUser = opOriginalAddress.get().getUser();
+                if (originalUser.getId() == userId) {
+                    address.setUser(originalUser);
+                    return ResponseEntity.ok(addressDAO.save(address));
+                }
+            }
+        }
+        return ResponseEntity.badRequest().build();
     }
 
     private boolean userHasPermission(LocalUser user, Long id) {
