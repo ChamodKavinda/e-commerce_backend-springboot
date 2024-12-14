@@ -1,11 +1,15 @@
 package com.chamod.ecommerce_backend.service;
 
 import com.chamod.ecommerce_backend.api.model.LoginBody;
+import com.chamod.ecommerce_backend.api.model.PasswordResetBody;
 import com.chamod.ecommerce_backend.api.model.RegistrationBody;
 import com.chamod.ecommerce_backend.exception.EmailFailureException;
+import com.chamod.ecommerce_backend.exception.EmailNotFoundException;
 import com.chamod.ecommerce_backend.exception.UserAlreadyExistsException;
 import com.chamod.ecommerce_backend.exception.UserNotVerifiedException;
+import com.chamod.ecommerce_backend.model.LocalUser;
 import com.chamod.ecommerce_backend.model.VerificationToken;
+import com.chamod.ecommerce_backend.model.dao.LocalUserDAO;
 import com.chamod.ecommerce_backend.model.dao.VerificationTokenDAO;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
@@ -32,6 +36,15 @@ public class UserServiceTest {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private JWTService jwtService;
+
+    @Autowired
+    private EncryptionService encryptionService;
+
+    @Autowired
+    private LocalUserDAO localUserDAO;
 
     @Autowired
     private VerificationTokenDAO verificationTokenDAO;
@@ -105,6 +118,32 @@ public class UserServiceTest {
             Assertions.assertTrue(userService.verifyUser(token), "Token should be valid.");
             Assertions.assertNotNull(body, "The user should now be verified.");
         }
+    }
+
+    @Test
+    @Transactional
+    public void testForgotPassword() throws MessagingException {
+        Assertions.assertThrows(EmailNotFoundException.class,
+                () -> userService.forgotPassword("UserNotExist@junit.com"));
+        Assertions.assertDoesNotThrow(() -> userService.forgotPassword(
+                "UserA@junit.com"), "Non existing email should be rejected.");
+        Assertions.assertEquals("UserA@junit.com",
+                greenMailExtension.getReceivedMessages()[0]
+                        .getRecipients(Message.RecipientType.TO)[0].toString(), "Password " +
+                        "reset email should be sent.");
+    }
+
+
+    public void testResetPassword() {
+        LocalUser user = localUserDAO.findByUsernameIgnoreCase("UserA").get();
+        String token = jwtService.generatePasswordResetJWT(user);
+        PasswordResetBody body = new PasswordResetBody();
+        body.setToken(token);
+        body.setPassword("Password123456");
+        userService.resetPassword(body);
+        user = localUserDAO.findByUsernameIgnoreCase("UserA").get();
+        Assertions.assertTrue(encryptionService.verifyPassword("Password123456",
+                user.getPassword()), "Password change should be written to DB.");
     }
 
 
