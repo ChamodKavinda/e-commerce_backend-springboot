@@ -1,6 +1,7 @@
 package com.chamod.ecommerce_backend.service;
 
 import com.chamod.ecommerce_backend.api.model.LoginBody;
+import com.chamod.ecommerce_backend.api.model.PasswordResetBody;
 import com.chamod.ecommerce_backend.api.model.RegistrationBody;
 import com.chamod.ecommerce_backend.exception.EmailFailureException;
 import com.chamod.ecommerce_backend.exception.EmailNotFoundException;
@@ -109,6 +110,17 @@ public class UserService {
             emailService.sendPasswordResetEmail(user, token);
         } else {
             throw new EmailNotFoundException();
+        }
+    }
+
+
+    public void resetPassword(PasswordResetBody body) {
+        String email = jwtService.getResetPasswordEmail(body.getToken());
+        Optional<LocalUser> opUser = localUserDAO.findByEmailIgnoreCase(email);
+        if (opUser.isPresent()) {
+            LocalUser user = opUser.get();
+            user.setPassword(encryptionService.encryptPassword(body.getPassword()));
+            localUserDAO.save(user);
         }
     }
 }
